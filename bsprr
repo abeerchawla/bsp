@@ -1,0 +1,127 @@
+clc
+clear all
+close all
+figure(1);
+x=importdata('slp01bm.mat');
+N=length(x);
+t=1:1:N;
+plot(t,x);
+title('input signal');
+xlabel('time');
+ylabel('amplitude');
+figure(2);
+% design of low pass filter
+subplot(2,2,1);
+plot(t,x);
+title('input signal');
+xlabel('time');
+ylabel('amplitude');
+b1=1/32*[1 0 0 0 0 0 -2 0 0 0 0 0 1];
+a1=[1 -2 1];
+subplot(2,2,2);
+y1=filter(b1,a1,x);
+plot(t,y1);
+title('Low pass filter output');
+xlabel('time');
+ylabel('Amplitude');
+subplot(2,2,3);
+[h1,w1]=freqz(b1,a1);
+plot(20*log10(abs(h1)))
+title('Magnitude response of the low pass filter');
+
+xlabel('Frequency');
+ylabel('Gain in db');
+subplot(2,2,4)
+zplane(b1,a1);
+title('Pole zero plot');
+figure(3);
+%design of high pass
+subplot(2,2,1);
+plot(t,y1);
+title('low pass filter output');
+xlabel('time');
+ylabel('amplitude');
+b2=[-1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 32 -32 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1];
+a2=[32 -32]
+subplot(2,2,2);
+y2=filter(b2,a2,y1);
+plot(t,y2);
+title('high pass fiter output');
+xlabel('time');
+ylabel('Amplitude');
+subplot(2,2,3);
+[h2,w2]=freqz(b2,a2);
+plot(20*log10(abs(h2)))
+title('Magnitude response of the high pass filter');
+xlabel('Frequency');
+ylabel('Gain in db');
+subplot(2,2,4)
+zplane(b2,a2);
+title('Pole zero plot');
+figure(4);
+%design of the derivative filter
+subplot(2,2,1);
+plot(t,y2);
+title('high pass filter output');
+xlabel('time');
+ylabel('amplitude');
+b3=0.125*[2 1 0 -1 -2];
+a3=[1];
+subplot(2,2,2);
+y3=filter(b3,a3,y2);
+plot(t,y3);
+title('derivative fiter output');
+xlabel('time');
+ylabel('amplitude');
+subplot(2,2,3);
+[h3,w3]=freqz(b3,a3);
+plot(20*log10(abs(h3)))
+title('Magnitude response of the derivative filter');
+xlabel('Frequency');
+ylabel('Gain in db');
+subplot(2,2,4)
+zplane(b3,a3);
+title('Pole zero plot');
+figure(5);
+%squaring
+subplot(2,1,1);
+plot(t,y3);
+title('derivative fiter output');
+xlabel('time');
+ylabel('amplitude');
+y4=(abs(y3)).^2;
+subplot(2,1,2);
+plot(t,y4);
+title('squaring function output');
+xlabel('time');
+ylabel('amplitude');
+figure(6);
+%integration
+subplot(2,1,1);
+plot(t,y4);
+title('squaring function output');
+xlabel('time');
+ylabel('amplitude');
+b3=1/32*ones(1,32);
+a=[1];
+y5=filter(b3,a,y4);
+subplot(2,1,2);
+plot(t,y5);
+title('integrating function output');
+xlabel('time');
+ylabel('amplitude');
+% min_peak=90;
+% [peaks,idx1]=findpeaks(y5)
+% [major_peaks, index]=find(peaks>=min_peak)
+% indices=idx1(index)
+% max=max(x(:)); min= min(min(x));
+% samplingRateInHz = (( max-min ) / (N - 1))*1000;
+% %distances
+% distances=mean(diff(indices))
+% sd=std(diff(indices));
+% disp('Standard Deviation of rr');disp(sd);
+% rrInSec = distances / samplingRateInHz;
+% disp('Mean rrInterval in Sec =');disp(rrInSec),disp('sec');
+ecg_signal=y5;
+M=getecgfeatures();
+[avgHR,meanRR,rmssd,nn50,pNN50,sd_RR,sd_HR,se,pse,average_hrv,hrv]= getECGFeatures(ecg_signal)
